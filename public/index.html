@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Class Register</title>
+  <meta name="description" content="Production-ready student attendance and assignment tracking application deployable on Netlify and runnable in Node.js.">
+  <meta property="og:title" content="Class Register">
+  <meta property="og:description" content="Production-ready student attendance and assignment tracking application deployable on Netlify and runnable in Node.js.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ================= HEADER ================= -->
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">IT-25 · CLASS REGISTER</div>
+      <h1>Class Register</h1>
+    </div>
+    <div class="topbar-actions">
+      <div class="date-chip" id="dateChip">—</div>
+      <button class="icon-btn hidden" id="userSettingsBtn" title="Security & Passcode Settings" onclick="openPasscodeModal()">⚙</button>
+    </div>
+  </header>
+
+  <div class="crumbs" id="crumbs"></div>
+
+  <main>
+
+    <!-- ================= SCREEN 1: LOGIN ================= -->
+    <section class="screen active" id="scr-login">
+      <div class="center-block">
+        <h2 class="screen-heading">Enter passcode</h2>
+        <p class="screen-sub">Unlock the register to continue.</p>
+        <div class="stack">
+          <input type="password" id="passcode" class="big-num-input" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autocomplete="off">
+          <button class="btn btn-primary" onclick="checkCode()">Unlock</button>
+        </div>
+        <p class="err hidden" id="loginErr" style="margin-top:14px;">Incorrect passcode. Try again.</p>
+      </div>
+    </section>
+
+    <!-- ================= SCREEN 2: CLASS SELECTION ================= -->
+    <section class="screen" id="scr-classes">
+      <h2 class="screen-heading">Select class</h2>
+      <p class="screen-sub">Choose which academic program to manage.</p>
+
+      <button class="class-card" onclick="chooseClass('csit')">
+        <span class="mode-icon blue">🎓</span>
+        <span>
+          <b>Bsc Csit RJU</b>
+          <small>Computer Science &amp; IT · Sections A1 &amp; A2 (62 students)</small>
+        </span>
+        <span class="chev">›</span>
+      </button>
+
+      <button class="class-card" onclick="chooseClass('bca')">
+        <span class="mode-icon amber">💻</span>
+        <span>
+          <b>BCA RJU</b>
+          <small>Bachelor of Computer Application · Direct Roster (28 students)</small>
+        </span>
+        <span class="chev">›</span>
+      </button>
+
+      <button class="class-card" onclick="chooseClass('xi')">
+        <span class="mode-icon red">📚</span>
+        <span>
+          <b>Class XI</b>
+          <small>Higher Secondary · 5 Sections B1–B5 (130 students)</small>
+        </span>
+        <span class="chev">›</span>
+      </button>
+
+      <div style="margin-top: auto; padding-top: 24px; text-align: center;">
+        <button class="link-btn" onclick="openPasscodeModal()">⚙ Change Passcode</button>
+        <button class="link-btn" onclick="logout()" style="color:var(--accent);">Log out</button>
+      </div>
+    </section>
+
+    <!-- ================= SCREEN 2.5: SECTION SELECTION ================= -->
+    <section class="screen" id="scr-section">
+      <h2 class="screen-heading" id="sectionClassTitle">Select section</h2>
+      <p class="screen-sub">Which section are you working with?</p>
+
+      <div class="section-grid" id="sectionListContainer">
+        <!-- Rendered dynamically for CSIT (A1, A2) or Class XI (B1..B5) -->
+      </div>
+
+      <button class="link-btn" onclick="goClasses()" style="margin-top:16px;">← Back to classes</button>
+    </section>
+
+    <!-- ================= SCREEN 3: MODE SELECTION ================= -->
+    <section class="screen" id="scr-home">
+      <div style="margin-bottom: 16px;">
+        <h2 class="screen-heading">What are you recording?</h2>
+        <p class="screen-sub" style="margin-bottom:0;">
+          <span id="modeClassLabel" style="font-weight:700;color:var(--primary);">Bsc Csit RJU</span> &bull;
+          <span id="modeSectionLabel">Section A1</span>
+        </p>
+      </div>
+
+      <button class="mode-card" onclick="chooseMode('attendance')">
+        <span class="mode-icon blue">📋</span>
+        <span>
+          <b>Attendance</b>
+          <small>Mark present / absent, one student at a time</small>
+        </span>
+        <span class="chev">›</span>
+      </button>
+
+      <button class="mode-card" onclick="chooseMode('assignment')">
+        <span class="mode-icon red">📝</span>
+        <span>
+          <b>Assignments</b>
+          <small>Open a student's record — unlock rows with Edit, upload only what you change</small>
+        </span>
+        <span class="chev">›</span>
+      </button>
+
+      <button class="link-btn" onclick="goClasses()">← Switch class</button>
+    </section>
+
+    <!-- ================= SCREEN 4: ATTENDANCE DAY SELECT ================= -->
+    <section class="screen" id="scr-day">
+      <div class="card info-card">
+        <h3>Last recorded: Day <span class="big" id="lastDayNumber">--</span></h3>
+        <p>Choose which column to update in the sheet.</p>
+      </div>
+
+      <button class="btn btn-primary" id="btnNextDay" onclick="startAttendance('next')">Start next day</button>
+
+      <div class="divider-note">— OR OVERWRITE A COLUMN —</div>
+
+      <div class="stack">
+        <input type="number" id="customDayInput" inputmode="numeric" placeholder="Column number">
+        <button class="btn btn-ghost" onclick="startAttendance('custom')">Edit custom column</button>
+      </div>
+      <p class="err hidden" id="dayErr">Enter a valid column number (1 or higher).</p>
+
+      <button class="link-btn" onclick="go('scr-home')">← Back to mode</button>
+    </section>
+
+    <!-- ================= SCREEN 5: ATTENDANCE MARKING ================= -->
+    <section class="screen" id="scr-att">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <p class="progress-text" id="progressText">Student 1 of X</p>
+
+      <div class="card student-card">
+        <div class="sid" id="attStudentId">IT-25-1-XXX</div>
+        <div class="sname" id="attStudentName">Student Name</div>
+      </div>
+
+      <div class="att-buttons">
+        <button class="btn-att btn-absent" onclick="recordAttendance(0)"><span>✖</span> Absent</button>
+        <button class="btn-att btn-present" onclick="recordAttendance(1)"><span>✔</span> Present</button>
+      </div>
+
+      <button class="btn btn-warn" id="btnUndo" onclick="undoAttendance()">↩ Undo previous student</button>
+    </section>
+
+    <!-- ================= SCREEN 6: ATTENDANCE FINALIZE ================= -->
+    <section class="screen" id="scr-note">
+      <h2 class="screen-heading">Finalize record</h2>
+      <p class="screen-sub">Saving to column <b id="finalDayDisplay" style="font-family:var(--font-mono);color:var(--primary);">--</b>.</p>
+
+      <textarea id="commentBox" placeholder="Session comments or notes..."></textarea>
+      <div class="summary-chip" id="dataSummary">Summary: --</div>
+
+      <button class="btn btn-green" onclick="submitAttendance()">✓ Submit to sheet</button>
+    </section>
+
+    <!-- ================= SCREEN 7: ASSIGNMENTS ROLL ENTRY ================= -->
+    <section class="screen" id="scr-roll">
+      <div class="center-block" style="width:100%;">
+        <h2 class="screen-heading">Open a student record</h2>
+        <p class="roll-range" id="rollRange">SECTION — · ROLLS 1–XX</p>
+
+        <div class="stack">
+          <input type="number" id="rollInput" class="big-num-input" inputmode="numeric" min="1" placeholder="Roll no.">
+          <button class="btn btn-primary" onclick="openRoll()">Open record</button>
+        </div>
+        <p class="err hidden" id="rollErr" style="margin-top:14px;"></p>
+
+        <button class="link-btn" onclick="go('scr-home')">← Back to mode</button>
+      </div>
+    </section>
+
+    <!-- ================= SCREEN 8: ASSIGNMENTS RECORD ================= -->
+    <section class="screen" id="scr-record">
+      <div class="card student-head">
+        <div class="roll-stamp" id="recRoll">–</div>
+        <div>
+          <div class="sname" id="recName">Student Name</div>
+          <div class="sid" id="recId">IT-25-1-XXX</div>
+        </div>
+      </div>
+
+      <div class="card table-wrap">
+        <table class="record">
+          <thead>
+            <tr>
+              <th class="h-no">#</th>
+              <th>Marks</th>
+              <th>Note</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="recordRows"></tbody>
+        </table>
+      </div>
+
+      <p class="edit-status" id="editStatus">All rows locked — press Edit to change one.</p>
+      <p class="err hidden" id="recordErr"></p>
+
+      <div class="stack">
+        <button class="btn btn-ghost" onclick="saveRecord('redo')">⟳ Upload &amp; redo</button>
+        <button class="btn btn-primary" onclick="saveRecord('complete')">✓ Upload &amp; complete</button>
+        <button class="link-btn" onclick="go('scr-roll')">Back without saving</button>
+      </div>
+    </section>
+
+    <!-- ================= SCREEN 9: SUCCESS ================= -->
+    <section class="screen" id="scr-done">
+      <div class="center-block" style="width:100%;">
+        <div class="done-mark">✓</div>
+        <h2 class="screen-heading">Saved to sheet</h2>
+        <p class="screen-sub" id="doneMsg">Record stored successfully.</p>
+        <button class="btn btn-primary" onclick="goHome()">Return to mode select</button>
+        <button class="link-btn" onclick="goClasses()">Switch class</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ================= PASSCODE RESET MODAL ================= -->
+<div class="modal-overlay hidden" id="passcodeModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Security &amp; Passcode</h3>
+      <button class="close-modal-btn" onclick="closePasscodeModal()">✕</button>
+    </div>
+    <p class="screen-sub" style="margin-bottom:14px;">Change the master passcode for register access.</p>
+    <div class="stack">
+      <input type="password" id="oldPasscodeInput" placeholder="Current passcode" autocomplete="off">
+      <input type="password" id="newPasscodeInput" placeholder="New passcode (min 4 digits)" autocomplete="off">
+      <button class="btn btn-primary" onclick="submitResetPassword()">Update Passcode</button>
+      <button class="btn btn-ghost" onclick="logout()" style="color:var(--accent);border-color:var(--accent);">Log Out</button>
+      <button class="link-btn" onclick="closePasscodeModal()">Cancel</button>
+    </div>
+    <p class="err hidden" id="resetModalErr" style="margin-top:10px;"></p>
+  </div>
+</div>
+
+<!-- ================= BUSY OVERLAY ================= -->
+<div class="busy hidden" id="busy">
+  <div class="loader"></div>
+  <h2 id="busyTitle">Working…</h2>
+  <p id="busySub">Please wait.</p>
+</div>
+
+<!-- ================= TOAST ================= -->
+<div class="toast" id="toast"></div>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Class Register",
+  "description": "Production-ready student attendance and assignment tracking application deployable on Netlify and runnable in Node.js.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
